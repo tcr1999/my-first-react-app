@@ -3,6 +3,9 @@ const HelloWorld = () => {
   const [location, setLocation] = React.useState(null);
   const [locationError, setLocationError] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [weatherData, setWeatherData] = React.useState(null);
+  const [weatherError, setWeatherError] = React.useState(null);
+  const [weatherLoading, setWeatherLoading] = React.useState(false);
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -11,6 +14,8 @@ const HelloWorld = () => {
   const getLocation = () => {
     setIsLoading(true);
     setLocationError(null);
+    setWeatherData(null);
+    setWeatherError(null);
     
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by your browser");
@@ -20,11 +25,15 @@ const HelloWorld = () => {
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
+        const locationData = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
-        });
+        };
+        setLocation(locationData);
         setIsLoading(false);
+        
+        // Fetch weather data once we have location
+        fetchWeatherData(locationData.latitude, locationData.longitude);
       },
       (error) => {
         setLocationError("Unable to retrieve your location");
@@ -32,6 +41,73 @@ const HelloWorld = () => {
         console.error("Geolocation error:", error);
       }
     );
+  };
+
+  const fetchWeatherData = async (latitude, longitude) => {
+    setWeatherLoading(true);
+    setWeatherError(null);
+    
+    const apiKey = 'jbinO4s4hSgUKzKkBvdVhgorbCzVEijP'; // Your Tomorrow.io API key
+    const url = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${apiKey}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          'accept-encoding': 'deflate, gzip, br',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Weather Data:', data);
+      
+      setWeatherData({
+        locationName: data.location.name,
+        tempApparent: data.data.values.temperatureApparent,
+        temperature: data.data.values.temperature,
+        humidity: data.data.values.humidity,
+        weatherCode: data.data.values.weatherCode,
+        windSpeed: data.data.values.windSpeed
+      });
+      
+      setWeatherLoading(false);
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      setWeatherError('Failed to fetch weather data');
+      setWeatherLoading(false);
+    }
+  };
+
+  // Get weather icon based on weather code
+  const getWeatherIcon = (weatherCode) => {
+    // Basic mapping of weather codes to emojis
+    // You can expand this to include more codes as needed
+    const weatherIcons = {
+      1000: '☀️', // Clear, Sunny
+      1100: '🌤️', // Mostly Clear
+      1101: '⛅', // Partly Cloudy
+      1102: '🌥️', // Mostly Cloudy
+      1001: '☁️', // Cloudy
+      2000: '🌫️', // Fog
+      4000: '🌧️', // Rain
+      4001: '🌧️', // Rain Showers
+      4200: '⛈️', // Rain, Thunderstorm
+      5000: '❄️', // Snow
+      5001: '🌨️', // Flurries
+      5100: '🌨️', // Snow Showers
+      6000: '🌧️', // Freezing Rain
+      6200: '🌨️', // Freezing Rain
+      7000: '🌨️', // Ice Pellets
+      7101: '🌨️', // Heavy Ice Pellets
+      8000: '⛈️', // Thunderstorm
+    };
+    
+    return weatherIcons[weatherCode] || '❓'; // Default icon if code not found
   };
 
   // Theme with consistent font family across dark and light modes
@@ -148,7 +224,7 @@ const HelloWorld = () => {
           transition: 'all 0.2s ease'
         }}
       >
-        {isLoading ? 'Loading...' : 'Get My Location'}
+        {isLoading ? 'Loading...' : 'Get My Location & Weather'}
       </button>
       
       {/* Location Display */}
@@ -160,7 +236,8 @@ const HelloWorld = () => {
           boxShadow: theme.boxShadow,
           maxWidth: '300px',
           width: '100%',
-          border: isDarkMode ? '1px solid #374151' : 'none'
+          border: isDarkMode ? '1px solid #374151' : 'none',
+          marginBottom: '20px'
         }}>
           <p style={{
             marginBottom: '12px', 
@@ -196,7 +273,93 @@ const HelloWorld = () => {
         </div>
       )}
       
-      {/* Error Message */}
+      {/* Weather Display */}
+      {weatherLoading && (
+        <div style={{
+          backgroundColor: theme.cardBackground,
+          padding: '16px 20px',
+          borderRadius: theme.cardBorderRadius,
+          boxShadow: theme.boxShadow,
+          maxWidth: '300px',
+          width: '100%',
+          border: isDarkMode ? '1px solid #374151' : 'none',
+          textAlign: 'center'
+        }}>
+          <p>Loading weather data...</p>
+        </div>
+      )}
+      
+      {weatherData && (
+        <div style={{
+          backgroundColor: theme.cardBackground,
+          padding: '16px 20px',
+          borderRadius: theme.cardBorderRadius,
+          boxShadow: theme.boxShadow,
+          maxWidth: '300px',
+          width: '100%',
+          border: isDarkMode ? '1px solid #374151' : 'none'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '12px'
+          }}>
+            <p style={{
+              fontWeight: '500',
+              fontSize: '16px'
+            }}>
+              {weatherData.locationName}
+            </p>
+            <span style={{fontSize: '24px'}}>
+              {getWeatherIcon(weatherData.weatherCode)}
+            </span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            marginBottom: '16px'
+          }}>
+            <span style={{
+              fontSize: '32px',
+              fontWeight: '600',
+              marginRight: '8px'
+            }}>
+              {Math.round(weatherData.temperature)}°C
+            </span>
+            <span style={{color: theme.secondaryText}}>
+              Feels like {Math.round(weatherData.tempApparent)}°C
+            </span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderTop: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+            paddingTop: '12px'
+          }}>
+            <div>
+              <p style={{color: theme.secondaryText, fontSize: '12px'}}>
+                Humidity
+              </p>
+              <p style={{fontWeight: '500'}}>
+                {Math.round(weatherData.humidity)}%
+              </p>
+            </div>
+            <div>
+              <p style={{color: theme.secondaryText, fontSize: '12px'}}>
+                Wind Speed
+              </p>
+              <p style={{fontWeight: '500'}}>
+                {Math.round(weatherData.windSpeed)} m/s
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Error Messages */}
       {locationError && (
         <div style={{
           color: isDarkMode ? '#F87171' : '#d32f2f',
@@ -205,6 +368,17 @@ const HelloWorld = () => {
           fontSize: '14px'
         }}>
           {locationError}
+        </div>
+      )}
+      
+      {weatherError && (
+        <div style={{
+          color: isDarkMode ? '#F87171' : '#d32f2f',
+          marginTop: '10px',
+          textAlign: 'center',
+          fontSize: '14px'
+        }}>
+          {weatherError}
         </div>
       )}
     </div>

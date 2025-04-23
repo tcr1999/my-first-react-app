@@ -55,8 +55,11 @@ const HelloWorld = () => {
       '0 4px 12px rgba(0, 0, 0, 0.5)' : 
       '0 10px 30px rgba(0, 0, 0, 0.1)',
       
-    // Border
-    borderRadius: isDarkMode ? '6px' : '16px',
+    // Border - consistent border radius for card
+    cardBorderRadius: isDarkMode ? '6px' : '16px',
+    
+    // Button styles - consistent across modes
+    buttonBorderRadius: '8px'
   };
 
   return (
@@ -126,7 +129,7 @@ const HelloWorld = () => {
         Toggle the switch in the corner to change themes
       </p>
       
-      {/* Location Button */}
+      {/* Location Button - now with consistent border radius */}
       <button 
         onClick={getLocation} 
         disabled={isLoading}
@@ -136,7 +139,7 @@ const HelloWorld = () => {
           backgroundColor: theme.accentColor,
           color: '#ffffff',
           border: 'none',
-          borderRadius: theme.borderRadius,
+          borderRadius: theme.buttonBorderRadius,
           cursor: 'pointer',
           fontFamily: theme.fontFamily,
           fontWeight: '500',
@@ -153,7 +156,7 @@ const HelloWorld = () => {
         <div style={{
           backgroundColor: theme.cardBackground,
           padding: '16px 20px',
-          borderRadius: theme.borderRadius,
+          borderRadius: theme.cardBorderRadius,
           boxShadow: theme.boxShadow,
           maxWidth: '300px',
           width: '100%',

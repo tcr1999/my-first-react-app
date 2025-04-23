@@ -6,6 +6,7 @@ const HelloWorld = () => {
   const [weatherData, setWeatherData] = React.useState(null);
   const [weatherError, setWeatherError] = React.useState(null);
   const [weatherLoading, setWeatherLoading] = React.useState(false);
+  const [showDetails, setShowDetails] = React.useState(false);
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -48,7 +49,7 @@ const HelloWorld = () => {
     setWeatherError(null);
     
     const apiKey = 'jbinO4s4hSgUKzKkBvdVhgorbCzVEijP'; // Your Tomorrow.io API key
-    const url = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${apiKey}`;
+    const url = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&units=metric&apikey=${apiKey}`;
     
     try {
       const response = await fetch(url, {
@@ -67,7 +68,31 @@ const HelloWorld = () => {
       console.log('Weather Data:', data);
       
       // Extract location components from the API response
-      const locationName = data.location.name;
+      // Try to use the location name from the API, or fallback to reverse geocoding
+      let locationName = "Unknown Location"; // Default fallback
+      
+      if (data.location && data.location.name) {
+        locationName = data.location.name;
+      } else {
+        // If no location name is provided, we can try to determine it
+        // from the coordinates (this is a fallback)
+        try {
+          const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+          const geocodeResponse = await fetch(geocodeUrl);
+          const geocodeData = await geocodeResponse.json();
+          
+          if (geocodeData.city) {
+            locationName = geocodeData.city;
+            if (geocodeData.locality && geocodeData.locality !== geocodeData.city) {
+              locationName = `${geocodeData.locality}, ${geocodeData.city}`;
+            }
+          } else if (geocodeData.locality) {
+            locationName = geocodeData.locality;
+          }
+        } catch (geocodeError) {
+          console.error('Error with geocoding fallback:', geocodeError);
+        }
+      }
       
       setWeatherData({
         locationName: locationName,
@@ -75,7 +100,12 @@ const HelloWorld = () => {
         temperature: data.data.values.temperature,
         humidity: data.data.values.humidity,
         weatherCode: data.data.values.weatherCode,
-        windSpeed: data.data.values.windSpeed
+        windSpeed: data.data.values.windSpeed,
+        // Additional data for expanded view
+        precipitation: data.data.values.precipitationProbability || 0,
+        visibility: data.data.values.visibility || 0,
+        pressureSurfaceLevel: data.data.values.pressureSurfaceLevel || 0,
+        uvIndex: data.data.values.uvIndex || 0
       });
       
       setWeatherLoading(false);
@@ -113,6 +143,18 @@ const HelloWorld = () => {
     return weatherIcons[weatherCode] || '❓'; // Default icon if code not found
   };
 
+  // Handle card click to show more details
+  const handleCardClick = () => {
+    if (weatherData) {
+      setShowDetails(true);
+    }
+  };
+
+  // Return to main view
+  const handleBackClick = () => {
+    setShowDetails(false);
+  };
+
   // Theme with consistent font family across dark and light modes
   const theme = {
     // Background colors
@@ -134,12 +176,60 @@ const HelloWorld = () => {
       '0 4px 12px rgba(0, 0, 0, 0.5)' : 
       '0 10px 30px rgba(0, 0, 0, 0.1)',
       
-    // Border - consistent border radius for card
-    cardBorderRadius: isDarkMode ? '6px' : '16px',
+    // Border - consistent border radius for card (same for both modes)
+    cardBorderRadius: '16px',
     
     // Button styles - consistent across modes
     buttonBorderRadius: '8px'
   };
+
+  // If showing details page
+  if (showDetails) {
+    return (
+      <div style={{
+        backgroundColor: theme.backgroundColor,
+        color: theme.textColor,
+        minHeight: '100vh',
+        fontFamily: theme.fontFamily,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        transition: 'all 0.3s ease',
+        padding: '20px'
+      }}>
+        <h1 style={{ 
+          fontSize: '48px', 
+          fontWeight: '600',
+          letterSpacing: 'normal',
+          marginBottom: '20px',
+          textAlign: 'center'
+        }}>
+          Hello again.
+        </h1>
+        
+        <button 
+          onClick={handleBackClick}
+          style={{
+            padding: '8px 16px',
+            fontSize: '14px',
+            backgroundColor: theme.accentColor,
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: theme.buttonBorderRadius,
+            cursor: 'pointer',
+            fontFamily: theme.fontFamily,
+            fontWeight: '500',
+            boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.1)',
+            marginTop: '20px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Back to Weather
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -185,7 +275,7 @@ const HelloWorld = () => {
         </div>
       </div>
       
-      {/* Hello World Text */}
+      {/* App Title Text */}
       <h1 style={{ 
         fontSize: '48px', 
         fontWeight: '600',
@@ -193,7 +283,7 @@ const HelloWorld = () => {
         marginBottom: '20px',
         textAlign: 'center'
       }}>
-        Hello World
+        Forecastly
       </h1>
       
       <p style={{
@@ -208,7 +298,7 @@ const HelloWorld = () => {
         Toggle the switch in the corner to change themes
       </p>
       
-      {/* Location Button - now with consistent border radius */}
+      {/* Location Button */}
       <button 
         onClick={getLocation} 
         disabled={isLoading || weatherLoading}
@@ -232,15 +322,26 @@ const HelloWorld = () => {
       
       {/* Weather and Location Display */}
       {weatherData && (
-        <div style={{
-          backgroundColor: theme.cardBackground,
-          padding: '20px',
-          borderRadius: theme.cardBorderRadius,
-          boxShadow: theme.boxShadow,
-          maxWidth: '320px',
-          width: '100%',
-          border: isDarkMode ? '1px solid #374151' : 'none'
-        }}>
+        <div 
+          onClick={handleCardClick}
+          style={{
+            backgroundColor: theme.cardBackground,
+            padding: '20px',
+            borderRadius: theme.cardBorderRadius,
+            boxShadow: theme.boxShadow,
+            maxWidth: '320px',
+            width: '100%',
+            border: isDarkMode ? '1px solid #374151' : 'none',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            ':hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: isDarkMode ? 
+                '0 6px 16px rgba(0, 0, 0, 0.6)' : 
+                '0 12px 36px rgba(0, 0, 0, 0.12)'
+            }
+          }}
+        >
           {/* Location Header */}
           <div style={{
             display: 'flex',
@@ -318,6 +419,16 @@ const HelloWorld = () => {
               </p>
             </div>
           </div>
+          
+          {/* Click for more info hint */}
+          <div style={{
+            textAlign: 'center',
+            marginTop: '12px',
+            fontSize: '12px',
+            color: theme.secondaryText
+          }}>
+            Click for more details
+          </div>
         </div>
       )}
       
@@ -364,6 +475,11 @@ const HelloWorld = () => {
 };
 
 const App = () => {
+  // Update page title
+  React.useEffect(() => {
+    document.title = "Forecastly";
+  }, []);
+  
   return <HelloWorld />;
 };
 

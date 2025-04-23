@@ -34,7 +34,7 @@ const HelloWorld = () => {
     );
   };
 
-  // Tamarashvili style vs Linear-inspired style
+  // Theme with consistent font family across dark and light modes
   const theme = {
     // Background colors
     backgroundColor: isDarkMode ? '#111827' : '#f8f9fa',
@@ -47,10 +47,8 @@ const HelloWorld = () => {
     // Accent colors
     accentColor: isDarkMode ? '#8B5CF6' : '#6366f1',
     
-    // Typography
-    fontFamily: isDarkMode ? 
-      'Inter, -apple-system, BlinkMacSystemFont, sans-serif' : 
-      'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
+    // Typography - same font for both modes
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
     
     // Effects
     boxShadow: isDarkMode ? 
@@ -107,13 +105,13 @@ const HelloWorld = () => {
       
       {/* Hello World Text */}
       <h1 style={{ 
-        fontSize: isDarkMode ? '40px' : '48px', 
-        fontWeight: isDarkMode ? '500' : '600',
-        letterSpacing: isDarkMode ? '-0.025em' : 'normal',
+        fontSize: '48px', 
+        fontWeight: '600',
+        letterSpacing: 'normal',
         marginBottom: '20px',
         textAlign: 'center'
       }}>
-        {isDarkMode ? 'Hello World' : 'Hello World'}
+        Hello World
       </h1>
       
       <p style={{
@@ -135,7 +133,7 @@ const HelloWorld = () => {
         style={{
           padding: '8px 16px',
           fontSize: '14px',
-          backgroundColor: isDarkMode ? theme.accentColor : '#6366f1',
+          backgroundColor: theme.accentColor,
           color: '#ffffff',
           border: 'none',
           borderRadius: theme.borderRadius,
@@ -177,7 +175,7 @@ const HelloWorld = () => {
             <span style={{color: theme.secondaryText}}>
               Latitude
             </span>
-            <span style={{fontWeight: isDarkMode ? '400' : '500'}}>
+            <span style={{fontWeight: '500'}}>
               {location.latitude.toFixed(6)}
             </span>
           </p>
@@ -188,7 +186,7 @@ const HelloWorld = () => {
             <span style={{color: theme.secondaryText}}>
               Longitude
             </span>
-            <span style={{fontWeight: isDarkMode ? '400' : '500'}}>
+            <span style={{fontWeight: '500'}}>
               {location.longitude.toFixed(6)}
             </span>
           </p>

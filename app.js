@@ -4,6 +4,7 @@ const HelloWorld = () => {
   const [locationError, setLocationError] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [weatherData, setWeatherData] = React.useState(null);
+  const [forecastData, setForecastData] = React.useState(null);
   const [weatherError, setWeatherError] = React.useState(null);
   const [weatherLoading, setWeatherLoading] = React.useState(false);
   const [showDetails, setShowDetails] = React.useState(false);
@@ -50,8 +51,10 @@ const HelloWorld = () => {
     
     const apiKey = 'jbinO4s4hSgUKzKkBvdVhgorbCzVEijP'; // Your Tomorrow.io API key
     const url = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&units=metric&apikey=${apiKey}`;
+    const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${latitude},${longitude}&timesteps=1d&units=metric&apikey=${apiKey}`;
     
     try {
+      // Fetch current weather
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -67,8 +70,23 @@ const HelloWorld = () => {
       const data = await response.json();
       console.log('Weather Data:', data);
       
+      // Fetch forecast data
+      const forecastResponse = await fetch(forecastUrl, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          'accept-encoding': 'deflate, gzip, br',
+        },
+      });
+      
+      if (!forecastResponse.ok) {
+        throw new Error(`Forecast API request failed with status ${forecastResponse.status}`);
+      }
+      
+      const forecastData = await forecastResponse.json();
+      console.log('Forecast Data:', forecastData);
+      
       // Extract location components from the API response
-      // Try to use the location name from the API, or fallback to reverse geocoding
       let locationName = "Unknown Location"; // Default fallback
       
       if (data.location && data.location.name) {
@@ -108,6 +126,11 @@ const HelloWorld = () => {
         uvIndex: data.data.values.uvIndex || 0
       });
       
+      // Process the forecast data
+      if (forecastData.timelines && forecastData.timelines.daily) {
+        setForecastData(forecastData.timelines.daily.slice(0, 5)); // Get 5 days
+      }
+      
       setWeatherLoading(false);
     } catch (error) {
       console.error('Error fetching weather data:', error);
@@ -141,6 +164,32 @@ const HelloWorld = () => {
     };
     
     return weatherIcons[weatherCode] || '❓'; // Default icon if code not found
+  };
+
+  // Get day name from date string
+  const getDayName = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Check if the date is today or tomorrow
+    if (date.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0)) {
+      return 'Today';
+    } else if (date.setHours(0, 0, 0, 0) === tomorrow.setHours(0, 0, 0, 0)) {
+      return 'Tomorrow';
+    }
+    
+    // Otherwise, return the day name
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[date.getDay()];
+  };
+
+  // Format date for display (e.g., "Apr 23")
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { month: 'short', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
   };
 
   // Handle card click to show more details
@@ -183,7 +232,7 @@ const HelloWorld = () => {
     buttonBorderRadius: '8px'
   };
 
-  // If showing details page
+  // If showing details page with forecast
   if (showDetails) {
     return (
       <div style={{
@@ -193,40 +242,288 @@ const HelloWorld = () => {
         fontFamily: theme.fontFamily,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
         transition: 'all 0.3s ease',
-        padding: '20px'
+        padding: '20px',
+        overflowX: 'hidden'
       }}>
-        <h1 style={{ 
-          fontSize: '48px', 
-          fontWeight: '600',
-          letterSpacing: 'normal',
-          marginBottom: '20px',
-          textAlign: 'center'
+        {/* Dark Mode Toggle */}
+        <div onClick={toggleDarkMode} style={{
+          width: '48px',
+          height: '24px',
+          backgroundColor: isDarkMode ? '#374151' : '#e0e0e0',
+          borderRadius: '12px',
+          padding: '2px',
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s'
         }}>
-          Hello again.
-        </h1>
+          <div style={{
+            width: '20px',
+            height: '20px',
+            backgroundColor: isDarkMode ? theme.accentColor : '#ffffff',
+            borderRadius: '50%',
+            position: 'absolute',
+            left: isDarkMode ? '26px' : '2px',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '12px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+          }}>
+            {isDarkMode ? '🌙' : '☀️'}
+          </div>
+        </div>
         
-        <button 
-          onClick={handleBackClick}
-          style={{
-            padding: '8px 16px',
-            fontSize: '14px',
-            backgroundColor: theme.accentColor,
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: theme.buttonBorderRadius,
-            cursor: 'pointer',
-            fontFamily: theme.fontFamily,
-            fontWeight: '500',
-            boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.1)',
-            marginTop: '20px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          Back to Weather
-        </button>
+        <div style={{
+          width: '100%',
+          maxWidth: '600px',
+          marginTop: '60px'
+        }}>
+          {/* Header Section */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '24px'
+          }}>
+            <h1 style={{ 
+              fontSize: '28px', 
+              fontWeight: '600'
+            }}>
+              5-Day Forecast
+            </h1>
+            
+            <button 
+              onClick={handleBackClick}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                backgroundColor: theme.accentColor,
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: theme.buttonBorderRadius,
+                cursor: 'pointer',
+                fontWeight: '500',
+                boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Back
+            </button>
+          </div>
+          
+          {/* Current Weather Card */}
+          {weatherData && (
+            <div style={{
+              backgroundColor: theme.cardBackground,
+              padding: '20px',
+              borderRadius: theme.cardBorderRadius,
+              boxShadow: theme.boxShadow,
+              width: '100%',
+              marginBottom: '24px',
+              border: isDarkMode ? '1px solid #374151' : 'none',
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+                borderBottom: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                paddingBottom: '12px'
+              }}>
+                <div>
+                  <p style={{
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    marginBottom: '4px'
+                  }}>
+                    {weatherData.locationName}
+                  </p>
+                  <p style={{
+                    fontSize: '13px',
+                    color: theme.secondaryText
+                  }}>
+                    Today's Weather
+                  </p>
+                </div>
+                <span style={{fontSize: '28px'}}>
+                  {getWeatherIcon(weatherData.weatherCode)}
+                </span>
+              </div>
+              
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'baseline'
+                  }}>
+                    <span style={{
+                      fontSize: '36px',
+                      fontWeight: '600',
+                      marginRight: '8px'
+                    }}>
+                      {Math.round(weatherData.temperature)}°C
+                    </span>
+                  </div>
+                  <p style={{
+                    color: theme.secondaryText,
+                    marginTop: '4px'
+                  }}>
+                    Feels like {Math.round(weatherData.tempApparent)}°C
+                  </p>
+                </div>
+                
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span style={{color: theme.secondaryText}}>Humidity:</span>
+                    <span style={{fontWeight: '500'}}>{Math.round(weatherData.humidity)}%</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span style={{color: theme.secondaryText}}>Wind:</span>
+                    <span style={{fontWeight: '500'}}>{Math.round(weatherData.windSpeed)} m/s</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span style={{color: theme.secondaryText}}>UV Index:</span>
+                    <span style={{fontWeight: '500'}}>{weatherData.uvIndex}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* 5-Day Forecast */}
+          {forecastData && forecastData.length > 0 ? (
+            <div style={{
+              backgroundColor: theme.cardBackground,
+              padding: '20px',
+              borderRadius: theme.cardBorderRadius,
+              boxShadow: theme.boxShadow,
+              width: '100%',
+              border: isDarkMode ? '1px solid #374151' : 'none',
+            }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                marginBottom: '16px',
+                borderBottom: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                paddingBottom: '8px'
+              }}>
+                5-Day Forecast
+              </h2>
+              
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+              }}>
+                {forecastData.map((day, index) => {
+                  const values = day.values;
+                  return (
+                    <div key={index} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 0',
+                      borderBottom: index < forecastData.length - 1 ? 
+                        (isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb') : 'none'
+                    }}>
+                      {/* Day and Date */}
+                      <div style={{
+                        minWidth: '100px'
+                      }}>
+                        <p style={{
+                          fontWeight: '600',
+                          fontSize: '16px'
+                        }}>
+                          {getDayName(day.time)}
+                        </p>
+                        <p style={{
+                          color: theme.secondaryText,
+                          fontSize: '14px'
+                        }}>
+                          {formatDate(day.time)}
+                        </p>
+                      </div>
+                      
+                      {/* Weather Icon */}
+                      <div style={{
+                        fontSize: '24px',
+                        flexGrow: 0,
+                        flexShrink: 0,
+                        marginRight: '8px'
+                      }}>
+                        {getWeatherIcon(values.weatherCodeMax || values.weatherCode)}
+                      </div>
+                      
+                      {/* Temperature and Details */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        justifyContent: 'space-between',
+                        flex: 1
+                      }}>
+                        {/* Temperature Range */}
+                        <div style={{
+                          textAlign: 'right'
+                        }}>
+                          <p style={{
+                            fontWeight: '600',
+                            fontSize: '16px'
+                          }}>
+                            {Math.round(values.temperatureMax)}° / {Math.round(values.temperatureMin)}°
+                          </p>
+                          <p style={{
+                            color: theme.secondaryText,
+                            fontSize: '14px'
+                          }}>
+                            {values.precipitationProbabilityAvg ? `${Math.round(values.precipitationProbabilityAvg)}% precip.` : 'No precipitation'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              backgroundColor: theme.cardBackground,
+              padding: '20px',
+              borderRadius: theme.cardBorderRadius,
+              boxShadow: theme.boxShadow,
+              width: '100%',
+              textAlign: 'center',
+              border: isDarkMode ? '1px solid #374151' : 'none',
+            }}>
+              <p>Forecast data not available</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -427,7 +724,7 @@ const HelloWorld = () => {
             fontSize: '12px',
             color: theme.secondaryText
           }}>
-            Click for more details
+            Click for 5-day forecast
           </div>
         </div>
       )}

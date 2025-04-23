@@ -34,24 +34,31 @@ const HelloWorld = () => {
     );
   };
 
-  // Tamarashvili style vs Unix style
+  // Tamarashvili style vs Linear-inspired style
   const theme = {
     // Background colors
-    backgroundColor: isDarkMode ? '#000000' : '#f8f9fa',
-    cardBackground: isDarkMode ? '#121212' : '#ffffff',
+    backgroundColor: isDarkMode ? '#111827' : '#f8f9fa',
+    cardBackground: isDarkMode ? '#1F2937' : '#ffffff',
     
     // Text colors
-    textColor: isDarkMode ? '#33ff00' : '#333333',
+    textColor: isDarkMode ? '#F9FAFB' : '#333333',
+    secondaryText: isDarkMode ? '#9CA3AF' : '#6e6e73',
+    
+    // Accent colors
+    accentColor: isDarkMode ? '#8B5CF6' : '#6366f1',
     
     // Typography
     fontFamily: isDarkMode ? 
-      'Courier New, monospace' : 
+      'Inter, -apple-system, BlinkMacSystemFont, sans-serif' : 
       'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
     
     // Effects
     boxShadow: isDarkMode ? 
-      '0 0 5px #33ff00' : 
-      '0 10px 30px rgba(0,0,0,0.1)'
+      '0 4px 12px rgba(0, 0, 0, 0.5)' : 
+      '0 10px 30px rgba(0, 0, 0, 0.1)',
+      
+    // Border
+    borderRadius: isDarkMode ? '6px' : '16px',
   };
 
   return (
@@ -69,12 +76,11 @@ const HelloWorld = () => {
     }}>
       {/* Dark Mode Toggle */}
       <div onClick={toggleDarkMode} style={{
-        width: '60px',
-        height: '30px',
-        backgroundColor: isDarkMode ? '#121212' : '#e0e0e0',
-        border: isDarkMode ? '1px solid #33ff00' : 'none',
-        borderRadius: '15px',
-        padding: '3px',
+        width: '48px',
+        height: '24px',
+        backgroundColor: isDarkMode ? '#374151' : '#e0e0e0',
+        borderRadius: '12px',
+        padding: '2px',
         position: 'absolute',
         top: '20px',
         right: '20px',
@@ -82,46 +88,44 @@ const HelloWorld = () => {
         transition: 'background-color 0.3s'
       }}>
         <div style={{
-          width: '24px',
-          height: '24px',
-          backgroundColor: isDarkMode ? '#33ff00' : '#ffffff',
+          width: '20px',
+          height: '20px',
+          backgroundColor: isDarkMode ? theme.accentColor : '#ffffff',
           borderRadius: '50%',
           position: 'absolute',
-          left: isDarkMode ? '33px' : '3px',
-          transition: 'left 0.3s',
+          left: isDarkMode ? '26px' : '2px',
+          transition: 'all 0.3s ease',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          fontSize: '14px',
-          boxShadow: isDarkMode ? '0 0 5px #33ff00' : '0 2px 5px rgba(0,0,0,0.2)'
+          fontSize: '12px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
         }}>
-          {isDarkMode ? '>' : '☀️'}
+          {isDarkMode ? '🌙' : '☀️'}
         </div>
       </div>
       
       {/* Hello World Text */}
       <h1 style={{ 
-        fontSize: '48px', 
-        fontWeight: isDarkMode ? '400' : '600',
-        letterSpacing: isDarkMode ? '1px' : 'normal',
-        textShadow: isDarkMode ? '0 0 10px #33ff00' : 'none',
+        fontSize: isDarkMode ? '40px' : '48px', 
+        fontWeight: isDarkMode ? '500' : '600',
+        letterSpacing: isDarkMode ? '-0.025em' : 'normal',
         marginBottom: '20px',
         textAlign: 'center'
       }}>
-        {isDarkMode ? 'HELLO_WORLD' : 'Hello World'}
+        {isDarkMode ? 'Hello World' : 'Hello World'}
       </h1>
       
       <p style={{
-        fontSize: '18px',
-        opacity: 0.7,
+        fontSize: '16px',
+        color: theme.secondaryText,
         maxWidth: '600px',
         textAlign: 'center',
         padding: '0 20px',
-        marginBottom: '30px'
+        marginBottom: '30px',
+        lineHeight: '1.5'
       }}>
-        {isDarkMode ? 
-          'TOGGLE_THE_SWITCH_TO_CHANGE_THEMES' : 
-          'Toggle the switch in the corner to change themes'}
+        Toggle the switch in the corner to change themes
       </p>
       
       {/* Location Button */}
@@ -129,49 +133,64 @@ const HelloWorld = () => {
         onClick={getLocation} 
         disabled={isLoading}
         style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          backgroundColor: isDarkMode ? '#121212' : '#6366f1',
-          color: isDarkMode ? '#33ff00' : '#ffffff',
-          border: isDarkMode ? '1px solid #33ff00' : 'none',
-          borderRadius: isDarkMode ? '0' : '8px',
+          padding: '8px 16px',
+          fontSize: '14px',
+          backgroundColor: isDarkMode ? theme.accentColor : '#6366f1',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: theme.borderRadius,
           cursor: 'pointer',
           fontFamily: theme.fontFamily,
-          boxShadow: isDarkMode ? '0 0 5px #33ff00' : '0 4px 6px rgba(0,0,0,0.1)',
-          marginBottom: '20px'
+          fontWeight: '500',
+          boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '20px',
+          transition: 'all 0.2s ease'
         }}
       >
-        {isLoading ? 
-          (isDarkMode ? 'LOADING...' : 'Loading...') : 
-          (isDarkMode ? 'GET_LOCATION' : 'Get My Location')}
+        {isLoading ? 'Loading...' : 'Get My Location'}
       </button>
       
       {/* Location Display */}
       {location && (
         <div style={{
           backgroundColor: theme.cardBackground,
-          padding: '20px',
-          borderRadius: isDarkMode ? '0' : '12px',
-          border: isDarkMode ? '1px solid #33ff00' : 'none',
+          padding: '16px 20px',
+          borderRadius: theme.borderRadius,
           boxShadow: theme.boxShadow,
           maxWidth: '300px',
           width: '100%',
-          textAlign: 'center'
+          border: isDarkMode ? '1px solid #374151' : 'none'
         }}>
-          <p style={{marginBottom: '10px', fontWeight: isDarkMode ? '400' : '600'}}>
-            {isDarkMode ? 'YOUR_COORDINATES:' : 'Your Coordinates'}
+          <p style={{
+            marginBottom: '12px', 
+            fontWeight: '500',
+            fontSize: '14px',
+            color: theme.secondaryText
+          }}>
+            Your Coordinates
           </p>
-          <p style={{marginBottom: '5px'}}>
-            <span style={{opacity: 0.7}}>
-              {isDarkMode ? 'LAT: ' : 'Latitude: '}
+          <p style={{
+            marginBottom: '8px',
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{color: theme.secondaryText}}>
+              Latitude
             </span>
-            {location.latitude.toFixed(6)}
+            <span style={{fontWeight: isDarkMode ? '400' : '500'}}>
+              {location.latitude.toFixed(6)}
+            </span>
           </p>
-          <p>
-            <span style={{opacity: 0.7}}>
-              {isDarkMode ? 'LONG: ' : 'Longitude: '}
+          <p style={{
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{color: theme.secondaryText}}>
+              Longitude
             </span>
-            {location.longitude.toFixed(6)}
+            <span style={{fontWeight: isDarkMode ? '400' : '500'}}>
+              {location.longitude.toFixed(6)}
+            </span>
           </p>
         </div>
       )}
@@ -179,11 +198,12 @@ const HelloWorld = () => {
       {/* Error Message */}
       {locationError && (
         <div style={{
-          color: isDarkMode ? '#ff6b6b' : '#d32f2f',
+          color: isDarkMode ? '#F87171' : '#d32f2f',
           marginTop: '10px',
-          textAlign: 'center'
+          textAlign: 'center',
+          fontSize: '14px'
         }}>
-          {isDarkMode ? locationError.toUpperCase() : locationError}
+          {locationError}
         </div>
       )}
     </div>

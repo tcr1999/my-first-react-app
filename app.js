@@ -66,8 +66,11 @@ const HelloWorld = () => {
       const data = await response.json();
       console.log('Weather Data:', data);
       
+      // Extract location components from the API response
+      const locationName = data.location.name;
+      
       setWeatherData({
-        locationName: data.location.name,
+        locationName: locationName,
         tempApparent: data.data.values.temperatureApparent,
         temperature: data.data.values.temperature,
         humidity: data.data.values.humidity,
@@ -224,7 +227,7 @@ const HelloWorld = () => {
           transition: 'all 0.2s ease'
         }}
       >
-        {isLoading || weatherLoading ? 'Loading...' : 'Get My Location & Weather'}
+        {isLoading || weatherLoading ? 'Loading...' : 'Get Weather Information'}
       </button>
       
       {/* Weather and Location Display */}
@@ -249,7 +252,7 @@ const HelloWorld = () => {
           }}>
             <div>
               <p style={{
-                fontSize: '18px',
+                fontSize: '20px',
                 fontWeight: '600',
                 marginBottom: '4px'
               }}>
@@ -259,7 +262,7 @@ const HelloWorld = () => {
                 fontSize: '13px',
                 color: theme.secondaryText
               }}>
-                Your Current Location
+                Current Weather
               </p>
             </div>
             <span style={{fontSize: '28px'}}>

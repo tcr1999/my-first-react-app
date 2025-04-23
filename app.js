@@ -208,7 +208,7 @@ const HelloWorld = () => {
       {/* Location Button - now with consistent border radius */}
       <button 
         onClick={getLocation} 
-        disabled={isLoading}
+        disabled={isLoading || weatherLoading}
         style={{
           padding: '8px 16px',
           fontSize: '14px',
@@ -224,115 +224,74 @@ const HelloWorld = () => {
           transition: 'all 0.2s ease'
         }}
       >
-        {isLoading ? 'Loading...' : 'Get My Location & Weather'}
+        {isLoading || weatherLoading ? 'Loading...' : 'Get My Location & Weather'}
       </button>
       
-      {/* Location Display */}
-      {location && (
-        <div style={{
-          backgroundColor: theme.cardBackground,
-          padding: '16px 20px',
-          borderRadius: theme.cardBorderRadius,
-          boxShadow: theme.boxShadow,
-          maxWidth: '300px',
-          width: '100%',
-          border: isDarkMode ? '1px solid #374151' : 'none',
-          marginBottom: '20px'
-        }}>
-          <p style={{
-            marginBottom: '12px', 
-            fontWeight: '500',
-            fontSize: '14px',
-            color: theme.secondaryText
-          }}>
-            Your Coordinates
-          </p>
-          <p style={{
-            marginBottom: '8px',
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{color: theme.secondaryText}}>
-              Latitude
-            </span>
-            <span style={{fontWeight: '500'}}>
-              {location.latitude.toFixed(6)}
-            </span>
-          </p>
-          <p style={{
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{color: theme.secondaryText}}>
-              Longitude
-            </span>
-            <span style={{fontWeight: '500'}}>
-              {location.longitude.toFixed(6)}
-            </span>
-          </p>
-        </div>
-      )}
-      
-      {/* Weather Display */}
-      {weatherLoading && (
-        <div style={{
-          backgroundColor: theme.cardBackground,
-          padding: '16px 20px',
-          borderRadius: theme.cardBorderRadius,
-          boxShadow: theme.boxShadow,
-          maxWidth: '300px',
-          width: '100%',
-          border: isDarkMode ? '1px solid #374151' : 'none',
-          textAlign: 'center'
-        }}>
-          <p>Loading weather data...</p>
-        </div>
-      )}
-      
+      {/* Weather and Location Display */}
       {weatherData && (
         <div style={{
           backgroundColor: theme.cardBackground,
-          padding: '16px 20px',
+          padding: '20px',
           borderRadius: theme.cardBorderRadius,
           boxShadow: theme.boxShadow,
-          maxWidth: '300px',
+          maxWidth: '320px',
           width: '100%',
           border: isDarkMode ? '1px solid #374151' : 'none'
         }}>
+          {/* Location Header */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '12px'
+            marginBottom: '16px',
+            borderBottom: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+            paddingBottom: '12px'
           }}>
-            <p style={{
-              fontWeight: '500',
-              fontSize: '16px'
-            }}>
-              {weatherData.locationName}
-            </p>
-            <span style={{fontSize: '24px'}}>
+            <div>
+              <p style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                marginBottom: '4px'
+              }}>
+                {weatherData.locationName}
+              </p>
+              <p style={{
+                fontSize: '13px',
+                color: theme.secondaryText
+              }}>
+                Your Current Location
+              </p>
+            </div>
+            <span style={{fontSize: '28px'}}>
               {getWeatherIcon(weatherData.weatherCode)}
             </span>
           </div>
           
+          {/* Temperature Section */}
           <div style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            marginBottom: '16px'
+            marginBottom: '20px'
           }}>
-            <span style={{
-              fontSize: '32px',
-              fontWeight: '600',
-              marginRight: '8px'
+            <div style={{
+              display: 'flex',
+              alignItems: 'baseline'
             }}>
-              {Math.round(weatherData.temperature)}°C
-            </span>
-            <span style={{color: theme.secondaryText}}>
+              <span style={{
+                fontSize: '36px',
+                fontWeight: '600',
+                marginRight: '8px'
+              }}>
+                {Math.round(weatherData.temperature)}°C
+              </span>
+            </div>
+            <p style={{
+              color: theme.secondaryText,
+              marginTop: '4px'
+            }}>
               Feels like {Math.round(weatherData.tempApparent)}°C
-            </span>
+            </p>
           </div>
           
+          {/* Additional Weather Info */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -356,6 +315,22 @@ const HelloWorld = () => {
               </p>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Loading State */}
+      {(isLoading || weatherLoading) && !weatherData && (
+        <div style={{
+          backgroundColor: theme.cardBackground,
+          padding: '16px 20px',
+          borderRadius: theme.cardBorderRadius,
+          boxShadow: theme.boxShadow,
+          maxWidth: '300px',
+          width: '100%',
+          border: isDarkMode ? '1px solid #374151' : 'none',
+          textAlign: 'center'
+        }}>
+          <p>Fetching your location and weather data...</p>
         </div>
       )}
       

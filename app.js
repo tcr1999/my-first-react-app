@@ -4,7 +4,7 @@ const HelloWorld = () => {
   const [locationError, setLocationError] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [weatherData, setWeatherData] = React.useState(null);
-  const [forecastData, setForecastData] = React.useState(null);
+  const [hourlyForecastData, setHourlyForecastData] = React.useState(null);
   const [weatherError, setWeatherError] = React.useState(null);
   const [weatherLoading, setWeatherLoading] = React.useState(false);
   const [showDetails, setShowDetails] = React.useState(false);
@@ -51,7 +51,7 @@ const HelloWorld = () => {
     
     const apiKey = 'jbinO4s4hSgUKzKkBvdVhgorbCzVEijP'; // Your Tomorrow.io API key
     const url = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&units=metric&apikey=${apiKey}`;
-    const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${latitude},${longitude}&timesteps=1d&units=metric&apikey=${apiKey}`;
+    const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${latitude},${longitude}&timesteps=1h&units=metric&apikey=${apiKey}`;
     
     try {
       // Fetch current weather
@@ -127,8 +127,8 @@ const HelloWorld = () => {
       });
       
       // Process the forecast data
-      if (forecastData.timelines && forecastData.timelines.daily) {
-        setForecastData(forecastData.timelines.daily.slice(0, 5)); // Get 5 days
+      if (forecastData.timelines && forecastData.timelines.hourly) {
+        setHourlyForecastData(forecastData.timelines.hourly.slice(0, 24)); // Get 24 hours
       }
       
       setWeatherLoading(false);
@@ -166,38 +166,19 @@ const HelloWorld = () => {
     return weatherIcons[weatherCode] || '❓'; // Default icon if code not found
   };
 
-  // Get day name from date string
-  const getDayName = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Check if the date is today or tomorrow
-    if (date.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0)) {
-      return 'Today';
-    } else if (date.setHours(0, 0, 0, 0) === tomorrow.setHours(0, 0, 0, 0)) {
-      return 'Tomorrow';
-    }
-    
-    // Otherwise, return the day name
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[date.getDay()];
-  };
+    // Get hour from date string (e.g., "1 PM")
+    const formatToHour = (dateString) => {
+      const date = new Date(dateString);
+      const options = { hour: 'numeric', hour12: true };
+      return date.toLocaleTimeString([], options);
+    };
 
-  // Format date for display (e.g., "Apr 23")
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { month: 'short', day: 'numeric' };
-    return date.toLocaleDateString(undefined, options);
-  };
-
-  // Handle card click to show more details
-  const handleCardClick = () => {
-    if (weatherData) {
-      setShowDetails(true);
-    }
-  };
+    // Handle card click to show more details
+    const handleCardClick = () => {
+      if (weatherData) {
+        setShowDetails(true);
+      }
+    };
 
   // Return to main view
   const handleBackClick = () => {
@@ -294,7 +275,7 @@ const HelloWorld = () => {
               fontSize: '28px', 
               fontWeight: '600'
             }}>
-              5-Day Forecast
+              24-Hour Forecast
             </h1>
             
             <button 
@@ -416,7 +397,7 @@ const HelloWorld = () => {
           )}
           
           {/* 5-Day Forecast */}
-          {forecastData && forecastData.length > 0 ? (
+          {hourlyForecastData && hourlyForecastData.length > 0 ? (
             <div style={{
               backgroundColor: theme.cardBackground,
               padding: '20px',
@@ -440,7 +421,7 @@ const HelloWorld = () => {
                 flexDirection: 'column',
                 gap: '16px'
               }}>
-                {forecastData.map((day, index) => {
+                {hourlyForecastData.map((day, index) => {
                   const values = day.values;
                   return (
                     <div key={index} style={{
@@ -448,7 +429,7 @@ const HelloWorld = () => {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: '12px 0',
-                      borderBottom: index < forecastData.length - 1 ? 
+                      borderBottom: index < hourlyForecastData.length - 1 ? 
                         (isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb') : 'none'
                     }}>
                       {/* Day and Date */}
@@ -459,13 +440,13 @@ const HelloWorld = () => {
                           fontWeight: '600',
                           fontSize: '16px'
                         }}>
-                          {getDayName(day.time)}
+                          {formatToHour(day.time)}
                         </p>
                         <p style={{
                           color: theme.secondaryText,
                           fontSize: '14px'
                         }}>
-                          {formatDate(day.time)}
+                          {/* You can add more hourly details here if needed, or remove this line */}
                         </p>
                       </div>
                       
@@ -495,13 +476,13 @@ const HelloWorld = () => {
                             fontWeight: '600',
                             fontSize: '16px'
                           }}>
-                            {Math.round(values.temperatureMax)}° / {Math.round(values.temperatureMin)}°
+                            {Math.round(values.temperature)}°C
                           </p>
                           <p style={{
                             color: theme.secondaryText,
                             fontSize: '14px'
                           }}>
-                            {values.precipitationProbabilityAvg ? `${Math.round(values.precipitationProbabilityAvg)}% precip.` : 'No precipitation'}
+                            {values.precipitationProbability ? `${Math.round(values.precipitationProbability)}% precip.` : 'No precipitation'}
                           </p>
                         </div>
                       </div>

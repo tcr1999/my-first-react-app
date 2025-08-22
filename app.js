@@ -8,9 +8,26 @@ const HelloWorld = () => {
   const [weatherError, setWeatherError] = React.useState(null);
   const [weatherLoading, setWeatherLoading] = React.useState(false);
   const [showDetails, setShowDetails] = React.useState(false);
+  const [selectedHourlyItem, setSelectedHourlyItem] = React.useState(null); // New state to track selected hourly item
+  
+  // Effect to update page title when component mounts
+  React.useEffect(() => {
+    document.title = "Forecastly";
+  }, []);
+
+  // Initialize selectedHourlyItem when hourlyForecastData is available and showDetails is true
+  React.useEffect(() => {
+    if (showDetails && hourlyForecastData && hourlyForecastData.length > 0) {
+      setSelectedHourlyItem(hourlyForecastData[0]);
+    }
+  }, [showDetails, hourlyForecastData]);
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  const handleHourlyItemClick = (item) => {
+    setSelectedHourlyItem(item);
   };
 
   const getLocation = () => {
@@ -332,7 +349,7 @@ const HelloWorld = () => {
                   </p>
                 </div>
                 <span style={{fontSize: '28px'}}>
-                  {getWeatherIcon(weatherData.weatherCode)}
+                  {getWeatherIcon(selectedHourlyItem ? selectedHourlyItem.values.weatherCode : weatherData.weatherCode)}
                 </span>
               </div>
               
@@ -351,14 +368,14 @@ const HelloWorld = () => {
                       fontWeight: '600',
                       marginRight: '8px'
                     }}>
-                      {Math.round(weatherData.temperature)}°C
+                      {Math.round(selectedHourlyItem ? selectedHourlyItem.values.temperature : weatherData.temperature)}°C
                     </span>
                   </div>
                   <p style={{
                     color: theme.secondaryText,
                     marginTop: '4px'
                   }}>
-                    Feels like {Math.round(weatherData.tempApparent)}°C
+                    Feels like {Math.round(selectedHourlyItem ? selectedHourlyItem.values.temperatureApparent : weatherData.tempApparent)}°C
                   </p>
                 </div>
                 
@@ -373,7 +390,7 @@ const HelloWorld = () => {
                     gap: '8px'
                   }}>
                     <span style={{color: theme.secondaryText}}>Humidity:</span>
-                    <span style={{fontWeight: '500'}}>{Math.round(weatherData.humidity)}%</span>
+                    <span style={{fontWeight: '500'}}>{Math.round(selectedHourlyItem ? selectedHourlyItem.values.humidity : weatherData.humidity)}%</span>
                   </div>
                   <div style={{
                     display: 'flex',
@@ -381,7 +398,7 @@ const HelloWorld = () => {
                     gap: '8px'
                   }}>
                     <span style={{color: theme.secondaryText}}>Wind:</span>
-                    <span style={{fontWeight: '500'}}>{Math.round(weatherData.windSpeed)} m/s</span>
+                    <span style={{fontWeight: '500'}}>{Math.round(selectedHourlyItem ? selectedHourlyItem.values.windSpeed : weatherData.windSpeed)} m/s</span>
                   </div>
                   <div style={{
                     display: 'flex',
@@ -389,14 +406,14 @@ const HelloWorld = () => {
                     gap: '8px'
                   }}>
                     <span style={{color: theme.secondaryText}}>UV Index:</span>
-                    <span style={{fontWeight: '500'}}>{weatherData.uvIndex}</span>
+                    <span style={{fontWeight: '500'}}>{selectedHourlyItem ? selectedHourlyItem.values.uvIndex : weatherData.uvIndex}</span>
                   </div>
                 </div>
               </div>
             </div>
           )}
           
-          {/* 5-Day Forecast */}
+          {/* 24-Hour Forecast */}
           {hourlyForecastData && hourlyForecastData.length > 0 ? (
             <div style={{
               backgroundColor: theme.cardBackground,
@@ -431,19 +448,25 @@ const HelloWorld = () => {
                 {hourlyForecastData.map((day, index) => {
                   const values = day.values;
                   return (
-                    <div key={index} style={{
-                      display: 'flex',
-                      flexDirection: 'column', // Arrange content vertically within each hourly item
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '10px',
-                      minWidth: '90px', // Ensure minimum width for each item
-                      backgroundColor: isDarkMode ? '#2D3748' : '#edf2f7', // Slightly different background for hourly items
-                      borderRadius: theme.cardBorderRadius,
-                      boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.08)',
-                      flexShrink: 0, // Prevent items from shrinking
-                      textAlign: 'center',
-                    }}>
+                    <div
+                      key={index}
+                      onClick={() => handleHourlyItemClick(day)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column', // Arrange content vertically within each hourly item
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '10px',
+                        minWidth: '90px', // Ensure minimum width for each item
+                        backgroundColor: selectedHourlyItem === day ? theme.accentColor : (isDarkMode ? '#2D3748' : '#edf2f7'), // Highlight selected item
+                        color: selectedHourlyItem === day ? '#ffffff' : theme.textColor, // Change text color for selected item
+                        borderRadius: theme.cardBorderRadius,
+                        boxShadow: selectedHourlyItem === day ? '0 4px 12px rgba(0,0,0,0.4)' : (isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.08)'), // Stronger shadow for selected
+                        flexShrink: 0, // Prevent items from shrinking
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}>
                       {/* Time */}
                       <p style={{
                         fontWeight: '600',

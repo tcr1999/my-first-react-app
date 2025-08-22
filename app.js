@@ -8,6 +8,16 @@ const HelloWorld = () => {
   const [weatherError, setWeatherError] = React.useState(null);
   const [weatherLoading, setWeatherLoading] = React.useState(false);
   const [showDetails, setShowDetails] = React.useState(false);
+  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+
+  // Effect to update windowWidth on resize
+  React.useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -244,8 +254,9 @@ const HelloWorld = () => {
         flexDirection: 'column',
         alignItems: 'center',
         transition: 'all 0.3s ease',
-        padding: '20px',
-        overflowX: 'hidden'
+        padding: windowWidth > 768 ? '40px' : '20px', // Conditional padding
+        overflowX: 'hidden',
+        boxSizing: 'border-box', // Ensure padding is included in element's total width/height
       }}>
         {/* Dark Mode Toggle */}
         <div onClick={toggleDarkMode} style={{
@@ -539,7 +550,8 @@ const HelloWorld = () => {
       justifyContent: 'center',
       alignItems: 'center',
       transition: 'all 0.3s ease',
-      padding: '20px'
+      padding: windowWidth > 768 ? '40px' : '20px', // Conditional padding
+      boxSizing: 'border-box', // Ensure padding is included in element's total width/height
     }}>
       {/* Logo */}
       <img src="./images/logo.png" alt="Logo" style={{ width: '100px', height: 'auto', marginBottom: '20px' }} />

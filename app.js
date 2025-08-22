@@ -8,21 +8,27 @@ const HelloWorld = () => {
   const [dailyForecastData, setDailyForecastData] = React.useState(null); // New state for 7-day daily forecast
   const [weatherError, setWeatherError] = React.useState(null);
   const [weatherLoading, setWeatherLoading] = React.useState(false);
-  // Removed: const [showDetails, setShowDetails] = React.useState(false);
-  // Removed: const [selectedHourlyItem, setSelectedHourlyItem] = React.useState(null);
+  const [selectedHourlyItem, setSelectedHourlyItem] = React.useState(null); // Re-added state to track selected hourly item
   
   // Effect to update page title when component mounts
   React.useEffect(() => {
     document.title = "Forecastly";
   }, []);
 
-  // Removed: useEffect to initialize selectedHourlyItem
-  
+  // Initialize selectedHourlyItem when hourlyForecastData is available and component mounts/updates
+  React.useEffect(() => {
+    if (hourlyForecastData && hourlyForecastData.length > 0 && !selectedHourlyItem) {
+      setSelectedHourlyItem(hourlyForecastData[0]);
+    }
+  }, [hourlyForecastData, selectedHourlyItem]);
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Removed: handleHourlyItemClick function
+  const handleHourlyItemClick = (item) => {
+    setSelectedHourlyItem(item);
+  };
 
   const getLocation = () => {
     setIsLoading(true);
@@ -386,7 +392,7 @@ const HelloWorld = () => {
                 </p>
               </div>
               <span style={{ fontSize: '28px' }}>
-                {getWeatherIcon(weatherData.values.weatherCode)}
+                {getWeatherIcon(selectedHourlyItem ? selectedHourlyItem.values.weatherCode : weatherData.values.weatherCode)}
               </span>
             </div>
 
@@ -406,14 +412,14 @@ const HelloWorld = () => {
                     fontWeight: '600',
                     marginRight: '8px',
                   }}>
-                    {Math.round(weatherData.values.temperature)}°C
+                    {Math.round(selectedHourlyItem ? selectedHourlyItem.values.temperature : weatherData.values.temperature)}°C
                   </span>
                 </div>
                 <p style={{
                   color: theme.secondaryText,
                   marginTop: '4px',
                 }}>
-                  Feels like {Math.round(weatherData.values.temperatureApparent)}°C
+                  Feels like {Math.round(selectedHourlyItem ? selectedHourlyItem.values.temperatureApparent : weatherData.values.temperatureApparent)}°C
                 </p>
               </div>
 
@@ -429,7 +435,7 @@ const HelloWorld = () => {
                   gap: '8px',
                 }}>
                   <span style={{ color: theme.secondaryText }}>Humidity:</span>
-                  <span style={{ fontWeight: '500' }}>{Math.round(weatherData.values.humidity)}%</span>
+                  <span style={{ fontWeight: '500' }}>{Math.round(selectedHourlyItem ? selectedHourlyItem.values.humidity : weatherData.values.humidity)}%</span>
                 </div>
                 <div style={{
                   display: 'flex',
@@ -437,7 +443,7 @@ const HelloWorld = () => {
                   gap: '8px',
                 }}>
                   <span style={{ color: theme.secondaryText }}>Wind:</span>
-                  <span style={{ fontWeight: '500' }}>{Math.round(weatherData.values.windSpeed)} m/s</span>
+                  <span style={{ fontWeight: '500' }}>{Math.round(selectedHourlyItem ? selectedHourlyItem.values.windSpeed : weatherData.values.windSpeed)} m/s</span>
                 </div>
                 <div style={{
                   display: 'flex',
@@ -445,7 +451,7 @@ const HelloWorld = () => {
                   gap: '8px',
                 }}>
                   <span style={{ color: theme.secondaryText }}>UV Index:</span>
-                  <span style={{ fontWeight: '500' }}>{weatherData.values.uvIndex}</span>
+                  <span style={{ fontWeight: '500' }}>{selectedHourlyItem ? selectedHourlyItem.values.uvIndex : weatherData.values.uvIndex}</span>
                 </div>
               </div>
             </div>
@@ -488,6 +494,7 @@ const HelloWorld = () => {
                 return (
                   <div
                     key={index}
+                    onClick={() => handleHourlyItemClick(hour)}
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -495,11 +502,13 @@ const HelloWorld = () => {
                       justifyContent: 'center',
                       padding: '10px',
                       minWidth: '90px',
-                      backgroundColor: isDarkMode ? '#2D3748' : '#edf2f7',
+                      backgroundColor: selectedHourlyItem === hour ? theme.accentColor : (isDarkMode ? '#2D3748' : '#edf2f7'),
+                      color: selectedHourlyItem === hour ? '#ffffff' : theme.textColor,
                       borderRadius: theme.cardBorderRadius,
-                      boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.08)',
+                      boxShadow: selectedHourlyItem === hour ? '0 4px 12px rgba(0,0,0,0.4)' : (isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.08)'),
                       flexShrink: 0,
                       textAlign: 'center',
+                      cursor: 'pointer',
                       transition: 'all 0.2s ease',
                     }}
                   >
@@ -579,6 +588,13 @@ const HelloWorld = () => {
             }}>
               {dailyForecastData.map((day, index) => {
                 const values = day.values;
+                const previousDayTemp = index > 0 ? dailyForecastData[index - 1].values.temperatureAvg : null;
+                const currentDayTemp = values.temperatureAvg;
+                const tempDifference = previousDayTemp !== null ? currentDayTemp - previousDayTemp : 0;
+                const showTempChange = Math.abs(tempDifference) >= 5;
+                const tempChangeIndicator = tempDifference > 0 ? '⬆️' : '⬇️';
+                const tempChangeColor = tempDifference > 0 ? '#4CAF50' : '#F44336';
+
                 return (
                   <div key={index} style={{
                     display: 'flex',
@@ -605,6 +621,11 @@ const HelloWorld = () => {
                       <p style={{ fontWeight: '600', fontSize: '16px' }}>
                         {Math.round(values.temperatureMax)}° / {Math.round(values.temperatureMin)}°
                       </p>
+                      {showTempChange && (
+                        <p style={{ color: tempChangeColor, fontSize: '12px', fontWeight: '500' }}>
+                          {tempChangeIndicator} {Math.abs(Math.round(tempDifference))}° change
+                        </p>
+                      )}
                       <p style={{ color: theme.secondaryText, fontSize: '14px' }}>
                         {values.precipitationProbabilityAvg ? `${Math.round(values.precipitationProbabilityAvg)}% precip.` : '0% precip.'}
                       </p>

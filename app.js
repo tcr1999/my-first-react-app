@@ -413,79 +413,70 @@ const HelloWorld = () => {
                 borderBottom: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
                 paddingBottom: '8px'
               }}>
-                5-Day Forecast
+                24-Hour Forecast
               </h2>
               
               <div style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '16px'
+                flexDirection: 'row', // Changed to row for horizontal display
+                overflowX: 'auto', // Enable horizontal scrolling
+                gap: '12px', // Space between hourly items
+                paddingBottom: '10px', // Add some padding for the scrollbar
+                MsOverflowStyle: 'none', // Hide scrollbar for IE/Edge
+                scrollbarWidth: 'none', // Hide scrollbar for Firefox
+                WebkitOverflowScrolling: 'touch', // Enable smooth scrolling on iOS
+                // Hide scrollbar for Webkit browsers (Chrome, Safari)
+                '&::-webkit-scrollbar': { display: 'none' }, 
               }}>
                 {hourlyForecastData.map((day, index) => {
                   const values = day.values;
                   return (
                     <div key={index} style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
+                      flexDirection: 'column', // Arrange content vertically within each hourly item
                       alignItems: 'center',
-                      padding: '12px 0',
-                      borderBottom: index < hourlyForecastData.length - 1 ? 
-                        (isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb') : 'none'
+                      justifyContent: 'center',
+                      padding: '10px',
+                      minWidth: '90px', // Ensure minimum width for each item
+                      backgroundColor: isDarkMode ? '#2D3748' : '#edf2f7', // Slightly different background for hourly items
+                      borderRadius: theme.cardBorderRadius,
+                      boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.08)',
+                      flexShrink: 0, // Prevent items from shrinking
+                      textAlign: 'center',
                     }}>
-                      {/* Day and Date */}
-                      <div style={{
-                        minWidth: '100px'
+                      {/* Time */}
+                      <p style={{
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        marginBottom: '4px'
                       }}>
-                        <p style={{
-                          fontWeight: '600',
-                          fontSize: '16px'
-                        }}>
-                          {formatToHour(day.time)}
-                        </p>
-                        <p style={{
-                          color: theme.secondaryText,
-                          fontSize: '14px'
-                        }}>
-                          {/* You can add more hourly details here if needed, or remove this line */}
-                        </p>
-                      </div>
+                        {formatToHour(day.time)}
+                      </p>
                       
                       {/* Weather Icon */}
                       <div style={{
-                        fontSize: '24px',
-                        flexGrow: 0,
-                        flexShrink: 0,
-                        marginRight: '8px'
+                        fontSize: '22px',
+                        marginBottom: '8px'
                       }}>
                         {getWeatherIcon(values.weatherCodeMax || values.weatherCode)}
                       </div>
                       
-                      {/* Temperature and Details */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        justifyContent: 'space-between',
-                        flex: 1
+                      {/* Temperature */}
+                      <p style={{
+                        fontWeight: '600',
+                        fontSize: '15px',
+                        marginBottom: '4px'
                       }}>
-                        {/* Temperature Range */}
-                        <div style={{
-                          textAlign: 'right'
-                        }}>
-                          <p style={{
-                            fontWeight: '600',
-                            fontSize: '16px'
-                          }}>
-                            {Math.round(values.temperature)}°C
-                          </p>
-                          <p style={{
-                            color: theme.secondaryText,
-                            fontSize: '14px'
-                          }}>
-                            {values.precipitationProbability ? `${Math.round(values.precipitationProbability)}% precip.` : 'No precipitation'}
-                          </p>
-                        </div>
-                      </div>
+                        {Math.round(values.temperature)}°C
+                      </p>
+                      
+                      {/* Precipitation */}
+                      <p style={{
+                        color: theme.secondaryText,
+                        fontSize: '12px'
+                      }}>
+                        {values.precipitationProbability ? `${Math.round(values.precipitationProbability)}%` : '0%'}
+                      </p>
                     </div>
                   );
                 })}

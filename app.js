@@ -459,7 +459,7 @@ const HelloWorld = () => {
         )}
 
         {/* 24-Hour Hourly Forecast */}
-        {hourlyForecastData && hourlyForecastData.length > 0 ? (
+        {weatherData && hourlyForecastData && hourlyForecastData.length > 0 ? (
           <div style={{
             backgroundColor: theme.cardBackground,
             padding: '20px',
@@ -546,7 +546,7 @@ const HelloWorld = () => {
               })}
             </div>
           </div>
-        ) : (isLoading || weatherLoading ? null : (
+        ) : (weatherData && (isLoading || weatherLoading ? null : (
           <div style={{
             backgroundColor: theme.cardBackground,
             padding: '20px',
@@ -558,10 +558,10 @@ const HelloWorld = () => {
           }}>
             <p>Hourly forecast data not available</p>
           </div>
-        ))}
+        )))}
 
         {/* 7-Day Daily Forecast */}
-        {dailyForecastData && dailyForecastData.length > 0 ? (
+        {weatherData && dailyForecastData && dailyForecastData.length > 0 ? (
           <div style={{
             backgroundColor: theme.cardBackground,
             padding: '20px',
@@ -635,7 +635,7 @@ const HelloWorld = () => {
               })}
             </div>
           </div>
-        ) : (isLoading || weatherLoading ? null : (
+        ) : (weatherData && (isLoading || weatherLoading ? null : (
           <div style={{
             backgroundColor: theme.cardBackground,
             padding: '20px',
@@ -648,7 +648,7 @@ const HelloWorld = () => {
           }}>
             <p>Daily forecast data not available</p>
           </div>
-        ))}
+        )))}
 
         {/* Loading State */}
         {(isLoading || weatherLoading) && !weatherData && (

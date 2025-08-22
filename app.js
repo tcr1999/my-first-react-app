@@ -82,7 +82,9 @@ const HelloWorld = () => {
       });
       
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        const errorBody = await response.json(); // Attempt to read error body
+        console.error('Realtime API Error:', response.status, errorBody);
+        throw new Error(`API request failed with status ${response.status}: ${errorBody.message || JSON.stringify(errorBody)}`);
       }
       
       const data = await response.json();
@@ -98,7 +100,9 @@ const HelloWorld = () => {
       });
       
       if (!forecastResponse.ok) {
-        throw new Error(`Forecast API request failed with status ${forecastResponse.status}`);
+        const errorBody = await forecastResponse.json(); // Attempt to read error body
+        console.error('Hourly Forecast API Error:', forecastResponse.status, errorBody);
+        throw new Error(`Forecast API request failed with status ${forecastResponse.status}: ${errorBody.message || JSON.stringify(errorBody)}`);
       }
       
       const forecastData = await forecastResponse.json();
@@ -161,7 +165,9 @@ const HelloWorld = () => {
       });
 
       if (!dailyForecastResponse.ok) {
-        throw new Error(`Daily Forecast API request failed with status ${dailyForecastResponse.status}`);
+        const errorBody = await dailyForecastResponse.json(); // Attempt to read error body
+        console.error('Daily Forecast API Error:', dailyForecastResponse.status, errorBody);
+        throw new Error(`Daily Forecast API request failed with status ${dailyForecastResponse.status}: ${errorBody.message || JSON.stringify(errorBody)}`);
       }
 
       const dailyData = await dailyForecastResponse.json();

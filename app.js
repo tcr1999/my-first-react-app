@@ -541,6 +541,8 @@ const HelloWorld = () => {
       transition: 'all 0.3s ease',
       padding: '20px'
     }}>
+      {/* Logo */}
+      <img src="./images/logo.png" alt="Logo" style={{ width: '100px', height: 'auto', marginBottom: '20px' }} />
       {/* Dark Mode Toggle */}
       <div onClick={toggleDarkMode} style={{
         width: '48px',

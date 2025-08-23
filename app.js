@@ -187,31 +187,49 @@ const HelloWorld = () => {
 
   // Get weather icon based on weather code
   const getWeatherIcon = (weatherCode) => {
-    // Basic mapping of weather codes to icons/emojis
-    const iconStyle = { width: '24px', height: '24px' };
+    // Basic mapping of weather codes to emojis
+    const weatherIcons = {
+      1000: '☀️', // Clear, Sunny
+      1100: '🌤️', // Mostly Clear
+      1101: '⛅', // Partly Cloudy
+      1102: '🌥️', // Mostly Cloudy
+      1001: '☁️', // Cloudy
+      2000: '🌫️', // Fog
+      4000: '🌧️', // Rain
+      4001: '🌧️', // Rain Showers
+      4200: '⛈️', // Rain, Thunderstorm
+      5000: '❄️', // Snow
+      5001: '🌨️', // Flurries
+      5100: '🌨️', // Snow Showers
+      6000: '🌧️', // Freezing Rain
+      6200: '🌨️', // Freezing Rain
+      7000: '🌨️', // Ice Pellets
+      7101: '🌨️', // Heavy Ice Pellets
+      8000: '⛈️', // Thunderstorm
+    };
+    
+    return weatherIcons[weatherCode] || '❓'; // Default icon if code not found
+  };
 
+  // Get the source for the main dynamic weather logo
+  const getMainWeatherLogoSrc = (weatherCode) => {
     switch (weatherCode) {
       case 1000: // Clear, Sunny
-        return <img src="./images/sunlogo.png" alt="Sunny" style={iconStyle} />;
+        return './images/sunlogo.png';
       case 4000: // Rain
       case 4001: // Rain Showers
       case 4200: // Rain, Thunderstorm
       case 6000: // Freezing Rain
       case 6200: // Freezing Rain
-        return <img src="./images/rainlogo.png" alt="Rain" style={iconStyle} />;
+        return './images/rainlogo.png';
       case 5000: // Snow
       case 5001: // Flurries
       case 5100: // Snow Showers
       case 7000: // Ice Pellets
       case 7101: // Heavy Ice Pellets
-        return <img src="./images/snowlogo.png" alt="Snow" style={iconStyle} />;
-      case 1100: return '🌤️'; // Mostly Clear
-      case 1101: return '⛅'; // Partly Cloudy
-      case 1102: return '🌥️'; // Mostly Cloudy
-      case 1001: return '☁️'; // Cloudy
-      case 2000: return '🌫️'; // Fog
-      case 8000: return '⛈️'; // Thunderstorm
-      default: return '❓'; // Default icon if code not found
+        return './images/snowlogo.png';
+      default:
+        return './images/logo.png'; // Default main logo
     }
   };
 
@@ -327,7 +345,18 @@ const HelloWorld = () => {
         paddingBottom: '20px',
       }}>
         {/* Logo */}
-        <img src="./images/logo.png" alt="Logo" style={{ width: '250px', height: 'auto', marginBottom: '20px', alignSelf: 'center' }} />
+        {weatherData && (
+          <img
+            src={getMainWeatherLogoSrc(weatherData.values.weatherCode)}
+            alt="Weather Logo"
+            style={{
+              width: '250px',
+              height: 'auto',
+              marginBottom: '20px',
+              alignSelf: 'center',
+            }}
+          />
+        )}
 
         {/* App Title Text */}
         <h1 style={{

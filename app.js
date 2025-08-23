@@ -37,8 +37,8 @@ const HelloWorld = () => {
     setWeatherError(null);
     
     if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by your browser");
-      setIsLoading(false);
+      // Fallback to IP-based geolocation if browser geolocation is not supported
+      fetchIpLocation();
       return;
     }
     
@@ -55,11 +55,37 @@ const HelloWorld = () => {
         fetchWeatherData(locationData.latitude, locationData.longitude);
       },
       (error) => {
-        setLocationError("Unable to retrieve your location");
-        setIsLoading(false);
         console.error("Geolocation error:", error);
+        // Fallback to IP-based geolocation if permission is denied or an error occurs
+        fetchIpLocation();
       }
     );
+  };
+
+  const fetchIpLocation = async () => {
+    setLocationError(null); // Clear previous errors
+    try {
+      const response = await fetch('http://ip-api.com/json/');
+      if (!response.ok) {
+        throw new Error(`IP geolocation failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.status === 'success') {
+        const locationData = {
+          latitude: data.lat,
+          longitude: data.lon
+        };
+        setLocation(locationData);
+        setIsLoading(false);
+        fetchWeatherData(locationData.latitude, locationData.longitude);
+      } else {
+        throw new Error(`IP geolocation failed: ${data.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('IP Geolocation fallback error:', error);
+      setLocationError("Unable to retrieve your location. Please ensure location services are enabled or try again.");
+      setIsLoading(false);
+    }
   };
 
   const fetchWeatherData = async (latitude, longitude) => {
